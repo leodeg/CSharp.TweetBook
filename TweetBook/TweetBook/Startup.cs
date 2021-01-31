@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TweetBook.Data;
+using TweetBook.Installers;
 
 namespace TweetBook
 {
@@ -29,29 +30,7 @@ namespace TweetBook
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services)
 		{
-			services.AddDbContext<DataContext>(options =>
-				options.UseSqlServer(
-					Configuration.GetConnectionString("DefaultConnection")));
-
-			services.AddDefaultIdentity<IdentityUser>(options => 
-					options.SignIn.RequireConfirmedAccount = true)
-				.AddEntityFrameworkStores<DataContext>();
-
-			services.AddSwaggerGen(option =>
-			{
-				option.SwaggerDoc("v1", new OpenApiInfo
-				{
-					Version = "v1",
-					Title = "TweetBook API",
-					Description = "A simple example ASP.NET Core REST API",
-					Contact = new OpenApiContact
-					{
-						Name = "LeoDeg",
-						Email = string.Empty,
-						Url = new Uri("https://github.com/leodeg"),
-					}
-				});
-			});
+			services.InstallServicesAssembly(Configuration);
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
