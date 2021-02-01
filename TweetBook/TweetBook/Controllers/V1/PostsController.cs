@@ -6,6 +6,7 @@ using TweetBook.Contracts.V1;
 using TweetBook.Contracts.V1.Requests;
 using TweetBook.Contracts.V1.Responses;
 using TweetBook.Domain;
+using TweetBook.Extensions;
 using TweetBook.Services;
 
 namespace TweetBook.Controllers.V1
@@ -33,6 +34,9 @@ namespace TweetBook.Controllers.V1
 		[HttpGet(APIRoutes.Posts.Get)]
 		public async Task<IActionResult> Get([FromRoute] Guid postId)
 		{
+			if (postId == null || postId == Guid.Empty)
+				return BadRequest(new { Error = $"Request is empty!" });
+
 			var post = await _postService.GetPostByIdAsync(postId);
 
 			if (post == null)
@@ -48,7 +52,7 @@ namespace TweetBook.Controllers.V1
 			if (string.IsNullOrEmpty(request.Name))
 				return BadRequest();
 
-			var post = new Post { Name = request.Name };
+			var post = new Post { Name = request.Name, UserId = HttpContext.GetUserId() };
 
 			await _postService.AddAsync(post);
 
@@ -63,11 +67,16 @@ namespace TweetBook.Controllers.V1
 		[HttpPut(APIRoutes.Posts.Update)]
 		public async Task<IActionResult> Put([FromRoute] Guid postId, [FromBody] UpdatePostRequest request)
 		{
-			var post = new Post
-			{
-				Id = postId,
-				Name = request.Name
-			};
+			if (postId == null || postId == Guid.Empty)
+				return BadRequest(new { Error = $"Request is empty!" });
+
+			var userOwnsPost = await _postService.UserOwnsPostAsync(postId, HttpContext.GetUserId());
+
+			if (!userOwnsPost)
+				return BadRequest(new { Error = "You do not own this post!" });
+
+			var post = await _postService.GetPostByIdAsync(postId);
+			post.Name = request.Name;
 
 			var updated = await _postService.UpdatePostAsync(post);
 			if (updated)
@@ -80,6 +89,14 @@ namespace TweetBook.Controllers.V1
 		[HttpDelete(APIRoutes.Posts.Delete)]
 		public async Task<IActionResult> Delete([FromRoute] Guid postId)
 		{
+			if (postId == null || postId == Guid.Empty)
+				return BadRequest(new { Error = $"Request is empty!" });
+
+			var userOwnsPost = await _postService.UserOwnsPostAsync(postId, HttpContext.GetUserId());
+
+			if (!userOwnsPost)
+				return BadRequest(new { Error = "You do not own this post!" });
+
 			if (postId == null || postId == Guid.Empty)
 				return BadRequest();
 
