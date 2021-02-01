@@ -1,7 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using TweetBook.Contracts.V1;
 using TweetBook.Contracts.V1.Requests;
@@ -42,6 +41,7 @@ namespace TweetBook.Controllers.V1
 			return Ok(post);
 		}
 
+		[Authorize]
 		[HttpPost(APIRoutes.Posts.Create)]
 		public async Task<IActionResult> Create([FromBody] CreatePostRequest request)
 		{
@@ -59,6 +59,7 @@ namespace TweetBook.Controllers.V1
 			return Created(locationUri, response);
 		}
 
+		[Authorize]
 		[HttpPut(APIRoutes.Posts.Update)]
 		public async Task<IActionResult> Put([FromRoute] Guid postId, [FromBody] UpdatePostRequest request)
 		{
@@ -75,6 +76,7 @@ namespace TweetBook.Controllers.V1
 			return NotFound();
 		}
 
+		[Authorize]
 		[HttpDelete(APIRoutes.Posts.Delete)]
 		public async Task<IActionResult> Delete([FromRoute] Guid postId)
 		{
