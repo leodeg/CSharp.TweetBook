@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Internal;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using TweetBook.Contracts.V1;
 using TweetBook.Contracts.V1.Requests;
@@ -51,8 +51,8 @@ namespace TweetBook.Controllers.V1
 		[HttpPost(APIRoutes.Posts.Create)]
 		public async Task<IActionResult> Create([FromBody] CreatePostRequest request)
 		{
-			if (string.IsNullOrEmpty(request.Name))
-				return BadRequest();
+			if (!ModelState.IsValid)
+				return BadRequest(ModelState.Values.SelectMany(state => state.Errors));
 
 			var post = new Post { Name = request.Name, UserId = HttpContext.GetUserId() };
 

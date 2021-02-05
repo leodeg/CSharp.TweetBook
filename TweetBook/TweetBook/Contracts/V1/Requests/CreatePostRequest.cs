@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace TweetBook.Contracts.V1.Requests
+﻿namespace TweetBook.Contracts.V1.Requests
 {
 	public class CreatePostRequest
 	{
