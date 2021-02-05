@@ -12,7 +12,8 @@ namespace TweetBook.Installers
 	{
 		public void InstallServices(IServiceCollection services, IConfiguration configuration)
 		{
-			services.AddMvc();
+			services.AddMvc(options => options.EnableEndpointRouting = false)
+				.SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Version_3_0);
 
 			services.AddSwaggerGen(option =>
 			{

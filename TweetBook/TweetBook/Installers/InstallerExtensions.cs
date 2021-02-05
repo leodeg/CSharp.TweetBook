@@ -10,7 +10,9 @@ namespace TweetBook.Installers
 		public static void InstallServicesAssembly(this IServiceCollection services, IConfiguration configuration)
 		{
 			var installers = typeof(Startup).Assembly.ExportedTypes
-				.Where(x => typeof(IInstaller).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract)
+				.Where(installer => typeof(IInstaller).IsAssignableFrom(installer)
+					&& !installer.IsInterface
+					&& !installer.IsAbstract)
 				.Select(Activator.CreateInstance)
 				.Cast<IInstaller>()
 				.ToList();

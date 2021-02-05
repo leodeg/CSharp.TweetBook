@@ -1,20 +1,46 @@
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Threading.Tasks;
+using TweetBook.Contracts.V1;
+using TweetBook.Data;
 
 namespace TweetBook
 {
-	public class Program
+	public static class Program
 	{
-		public static void Main(string[] args)
+		public static async Task Main(string[] args)
 		{
-			CreateHostBuilder(args).Build().Run();
+			var host = CreateHostBuilder(args).Build();
+
+			using (var serviceScope = host.Services.CreateScope())
+			{
+				//var dbContext = serviceScope.ServiceProvider
+				//	.GetRequiredService<DataContext>();
+
+				var roleManager = serviceScope.ServiceProvider
+					.GetRequiredService<RoleManager<IdentityRole>>();
+
+				if (!await roleManager.RoleExistsAsync(Roles.Admin))
+				{
+					var adminRole = new IdentityRole(Roles.Admin);
+					await roleManager.CreateAsync(adminRole);
+				}
+
+				if (!await roleManager.RoleExistsAsync(Roles.NormalUser))
+				{
+					var normalUserRole = new IdentityRole(Roles.NormalUser);
+					await roleManager.CreateAsync(normalUserRole);
+				}
+			}
+
+			await host.RunAsync();
 		}
 
-		public static IHostBuilder CreateHostBuilder(string[] args) =>
-			Host.CreateDefaultBuilder(args)
-				.ConfigureWebHostDefaults(webBuilder =>
-				{
-					webBuilder.UseStartup<Startup>();
-				});
+		public static IWebHostBuilder CreateHostBuilder(string[] args) =>
+			WebHost.CreateDefaultBuilder(args).UseStartup<Startup>();
 	}
 }

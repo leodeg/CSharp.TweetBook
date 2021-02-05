@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Internal;
 using System;
 using System.Threading.Tasks;
 using TweetBook.Contracts.V1;
@@ -11,6 +13,7 @@ using TweetBook.Services;
 
 namespace TweetBook.Controllers.V1
 {
+	[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 	public class PostsController : Controller
 	{
 		private readonly IPostService _postService;
@@ -45,7 +48,6 @@ namespace TweetBook.Controllers.V1
 			return Ok(post);
 		}
 
-		[Authorize]
 		[HttpPost(APIRoutes.Posts.Create)]
 		public async Task<IActionResult> Create([FromBody] CreatePostRequest request)
 		{
@@ -63,7 +65,6 @@ namespace TweetBook.Controllers.V1
 			return Created(locationUri, response);
 		}
 
-		[Authorize]
 		[HttpPut(APIRoutes.Posts.Update)]
 		public async Task<IActionResult> Put([FromRoute] Guid postId, [FromBody] UpdatePostRequest request)
 		{
@@ -85,7 +86,6 @@ namespace TweetBook.Controllers.V1
 			return NotFound();
 		}
 
-		[Authorize]
 		[HttpDelete(APIRoutes.Posts.Delete)]
 		public async Task<IActionResult> Delete([FromRoute] Guid postId)
 		{
