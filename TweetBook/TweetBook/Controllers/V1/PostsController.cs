@@ -81,7 +81,10 @@ namespace TweetBook.Controllers.V1
 
 			var updated = await _postService.UpdatePostAsync(post);
 			if (updated)
-				return Ok(post);
+			{
+				var response = new PostResponse { Id = post.Id, Name = post.Name };
+				return Ok(response);
+			}
 
 			return NotFound();
 		}
