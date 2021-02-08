@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using TweetBook.Cache;
 using TweetBook.Contracts.V1;
 using TweetBook.Contracts.V1.Requests;
 using TweetBook.Contracts.V1.Responses;
@@ -23,6 +24,7 @@ namespace TweetBook.Controllers.V1
 			this._postService = postService;
 		}
 
+		[Cached(600)]
 		[HttpGet(APIRoutes.Posts.GetAll)]
 		public async Task<IActionResult> GetAll()
 		{
@@ -34,6 +36,7 @@ namespace TweetBook.Controllers.V1
 			return Ok(posts);
 		}
 
+		[Cached(600)]
 		[HttpGet(APIRoutes.Posts.Get)]
 		public async Task<IActionResult> Get([FromRoute] Guid postId)
 		{
