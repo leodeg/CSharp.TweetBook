@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TweetBook.Contracts.V1.Queries;
 using TweetBook.Data;
 using TweetBook.Domain;
 
@@ -29,12 +30,23 @@ namespace TweetBook.Services
 			return await _data.Posts.AsNoTracking().ToListAsync();
 		}
 
-		public async Task<List<Post>> GetPostsAsync(PaginationFilter paginationFilter)
+		public async Task<List<Post>> GetPostsAsync(GetAllPostsQuery query = null, PaginationFilter paginationFilter = null)
 		{
-			return await _data.Posts.AsNoTracking()
-				.Skip((paginationFilter.PageNumber - 1) * paginationFilter.PageSize)
-				.Take(paginationFilter.PageSize)
-				.ToListAsync();
+			var quaryable = _data.Posts.AsNoTracking();
+
+			if (!string.IsNullOrEmpty(query.UserId))
+			{
+				quaryable = quaryable.Where(post => post.UserId == query.UserId);
+			}
+
+			if (paginationFilter != null)
+			{
+				quaryable = quaryable
+					.Skip((paginationFilter.PageNumber - 1) * paginationFilter.PageSize)
+					.Take(paginationFilter.PageSize);
+			}
+
+			return await quaryable.ToListAsync();
 		}
 
 		public async Task<Post> GetPostByIdAsync(Guid id)

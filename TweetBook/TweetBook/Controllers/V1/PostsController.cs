@@ -31,7 +31,7 @@ namespace TweetBook.Controllers.V1
 
 		[Cached(600)]
 		[HttpGet(APIRoutes.Posts.GetAll)]
-		public async Task<IActionResult> GetAll([FromQuery] PaginationQuery paginationQuery)
+		public async Task<IActionResult> GetAll([FromQuery] GetAllPostsQuery query, [FromQuery] PaginationQuery paginationQuery)
 		{
 			var paginationFilter = new PaginationFilter
 			{
@@ -39,7 +39,7 @@ namespace TweetBook.Controllers.V1
 				PageSize = paginationQuery.PageSize
 			};
 
-			var posts = await _postService.GetPostsAsync(paginationFilter);
+			var posts = await _postService.GetPostsAsync(query, paginationFilter);
 
 			var postResponses = new List<PostResponse>();
 			foreach (var post in posts)

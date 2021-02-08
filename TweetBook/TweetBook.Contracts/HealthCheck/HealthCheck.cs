@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TweetBook.Contracts.HealthCheck
+﻿namespace TweetBook.Contracts.HealthCheck
 {
 	public class HealthCheck
 	{
