@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using TweetBook.Data;
 using TweetBook.Domain;
@@ -26,6 +27,14 @@ namespace TweetBook.Services
 		public async Task<List<Post>> GetPostsAsync()
 		{
 			return await _data.Posts.AsNoTracking().ToListAsync();
+		}
+
+		public async Task<List<Post>> GetPostsAsync(PaginationFilter paginationFilter)
+		{
+			return await _data.Posts.AsNoTracking()
+				.Skip((paginationFilter.PageNumber - 1) * paginationFilter.PageSize)
+				.Take(paginationFilter.PageSize)
+				.ToListAsync();
 		}
 
 		public async Task<Post> GetPostByIdAsync(Guid id)

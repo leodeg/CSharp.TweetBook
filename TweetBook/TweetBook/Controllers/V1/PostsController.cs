@@ -2,14 +2,17 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TweetBook.Cache;
 using TweetBook.Contracts.V1;
+using TweetBook.Contracts.V1.Queries;
 using TweetBook.Contracts.V1.Requests;
 using TweetBook.Contracts.V1.Responses;
 using TweetBook.Domain;
 using TweetBook.Extensions;
+using TweetBook.Helpers;
 using TweetBook.Services;
 
 namespace TweetBook.Controllers.V1
@@ -18,22 +21,35 @@ namespace TweetBook.Controllers.V1
 	public class PostsController : Controller
 	{
 		private readonly IPostService _postService;
+		private readonly IUriService _uriService;
 
-		public PostsController(IPostService postService)
+		public PostsController(IPostService postService, IUriService uriService)
 		{
 			this._postService = postService;
+			this._uriService = uriService;
 		}
 
 		[Cached(600)]
 		[HttpGet(APIRoutes.Posts.GetAll)]
-		public async Task<IActionResult> GetAll()
+		public async Task<IActionResult> GetAll([FromQuery] PaginationQuery paginationQuery)
 		{
-			var posts = await _postService.GetPostsAsync();
+			var paginationFilter = new PaginationFilter
+			{
+				PageNumber = paginationQuery.PageNumber,
+				PageSize = paginationQuery.PageSize
+			};
 
-			if (posts == null || posts.Count == 0)
-				return NotFound();
+			var posts = await _postService.GetPostsAsync(paginationFilter);
 
-			return Ok(posts);
+			var postResponses = new List<PostResponse>();
+			foreach (var post in posts)
+				postResponses.Add(new PostResponse { Id = post.Id, Name = post.Name });
+
+			if (paginationFilter == null || paginationFilter.PageNumber < 1 || paginationFilter.PageSize < 1)
+				return Ok(new PagedResponse<PostResponse>(postResponses));
+
+			var paginatedResponse = PaginationHelpers.CreatePaginatedResponse<PostResponse>(_uriService, paginationFilter, postResponses);
+			return Ok(paginatedResponse);
 		}
 
 		[Cached(600)]
@@ -48,7 +64,7 @@ namespace TweetBook.Controllers.V1
 			if (post == null)
 				return NotFound();
 
-			return Ok(post);
+			return Ok(new Response<PostResponse>(new PostResponse { Id = post.Id, Name = post.Name }));
 		}
 
 		[HttpPost(APIRoutes.Posts.Create)]
@@ -61,11 +77,10 @@ namespace TweetBook.Controllers.V1
 
 			await _postService.AddAsync(post);
 
-			var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.ToUriComponent()}";
-			var locationUri = baseUrl + "/" + APIRoutes.Posts.Get.Replace("{postId}", post.Id.ToString());
 			var response = new PostResponse { Id = post.Id, Name = post.Name };
+			var locationUri = _uriService.GetPostUri(response.Id.ToString());
 
-			return Created(locationUri, response);
+			return Created(locationUri, new Response<PostResponse>(response));
 		}
 
 		[HttpPut(APIRoutes.Posts.Update)]
@@ -86,7 +101,7 @@ namespace TweetBook.Controllers.V1
 			if (updated)
 			{
 				var response = new PostResponse { Id = post.Id, Name = post.Name };
-				return Ok(response);
+				return Ok(new Response<PostResponse>(response));
 			}
 
 			return NotFound();
@@ -109,7 +124,7 @@ namespace TweetBook.Controllers.V1
 			var post = await _postService.GetPostByIdAsync(postId);
 			var deleted = await _postService.DeletePostAsync(postId);
 			if (deleted)
-				return Ok(post);
+				return Ok(new Response<PostResponse>(new PostResponse { Id = post.Id, Name = post.Name }));
 
 			return NotFound();
 		}
